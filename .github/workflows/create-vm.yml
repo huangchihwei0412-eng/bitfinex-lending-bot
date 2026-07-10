@@ -13,12 +13,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🛠️ 修正部分：直接使用 Linux 原生套件安裝，免除所有 wget/curl 網址失效風險
+      # 🛠️ 1. 設定 Python 環境
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 🛠️ 2. 全強置跨任務快取資料夾（避開任何專案設定檔檢查）
+      - name: Cache OCI Packages
+        id: oci-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-oci-v2
+
+      # 🛠️ 3. 智慧型安裝：若快取存在則 1 秒直接還原；若無快取則自動線上下載
       - name: Install OCI CLI
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq python3-oci-cli
+          if [ "${{ steps:oci-cache.outputs.cache-hit }}" = "true" ]; then
+            echo "🎯 檢測到本地快取，正在進行秒級極速還原..."
+            pip install oci-cli --no-index --find-links ~/.cache/pip --quiet
+          else
+            echo "📥 首次執行，正在從網路下載並建立快取庫..."
+            pip install oci-cli --cache-dir ~/.cache/pip --quiet
+          fi
 
+      # 💡 以下所有核心程式碼與變數「完全無變動」
       - name: Setup OCI CLI config
         env:
           OCI_API_PRIVATE_KEY: ${{ secrets.OCI_API_PRIVATE_KEY }}
