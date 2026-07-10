@@ -13,14 +13,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🛠️ 新增部分：設定 Python 環境並開啟 GitHub 內建快取機制
+      # 🛠️ 修正部分：設定 Python 環境（移除會導致錯誤的 cache 參數）
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip'
 
-      # 🛠️ 修改部分：改回使用 pip + 快取目錄，避免觸發耗時的 apt-get update
+      # 🛠️ 修正部分：使用純粹的 pip 安裝，不依賴專案內是否有 requirements.txt
       - name: Install OCI CLI
         run: |
           pip install oci-cli --cache-dir ~/.cache/pip --quiet
