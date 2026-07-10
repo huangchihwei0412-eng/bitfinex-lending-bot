@@ -59,8 +59,12 @@ for i in $(seq 1 $MAX_RETRIES); do
 
   echo "$RESULT"
 
-  if [ $STATUS -eq 0 ]; then
+if [ $STATUS -eq 0 ]; then
     echo "🎉 VM 建立成功！"
+    PUBLIC_IP=$(echo "$RESULT" | grep -oP '"public-ip":\s*"\K[^"]+' || echo "未知")
+    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+      -d chat_id="${TELEGRAM_CHAT_ID}" \
+      -d text="🎉 Oracle VM 建立成功！公用 IP: ${PUBLIC_IP}"
     exit 0
   elif echo "$RESULT" | grep -qi "OutOfCapacity\|Out of host capacity"; then
     echo "⏳ 容量不足，等下一輪排程再試"
