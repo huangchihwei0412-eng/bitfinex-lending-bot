@@ -61,9 +61,7 @@ for i in $(seq 1 $MAX_RETRIES); do
     --image-id "$IMAGE_ID" \
     --display-name "$DISPLAY_NAME" \
     --assign-public-ip true \
-    --ssh-authorized-keys-file <(echo "$OCI_SSH_PUBLIC_KEY") \
-    --wait-for-state RUNNING \
-    --max-wait-seconds 180 2>&1)
+    --ssh-authorized-keys-file <(echo "$OCI_SSH_PUBLIC_KEY") 2>&1)
   STATUS=$?
   set -e
   echo "$RESULT"
