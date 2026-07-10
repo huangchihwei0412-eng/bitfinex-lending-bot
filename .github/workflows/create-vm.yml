@@ -15,7 +15,7 @@ jobs:
 
       - name: Install OCI CLI
         run: |
-          curl -L https://githubusercontent.com | bash -s -- --accept-all-defaults
+          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash -s -- --accept-all-defaults
           echo "Adding OCI to PATH"
           echo "$HOME/bin" >> $GITHUB_PATH
 
