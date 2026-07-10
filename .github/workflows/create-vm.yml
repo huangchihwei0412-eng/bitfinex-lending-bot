@@ -14,7 +14,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install OCI CLI
-        run: pip install oci-cli --quiet
+        run: |
+          curl -L https://githubusercontent.com | bash -s -- --accept-all-defaults
+          echo "Adding OCI to PATH"
+          echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Setup OCI CLI config
         env:
