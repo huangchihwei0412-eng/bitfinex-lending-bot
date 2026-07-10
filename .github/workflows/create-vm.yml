@@ -13,11 +13,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 🛠️ 新增部分：設定 Python 環境並開啟 GitHub 內建快取機制
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      # 🛠️ 修改部分：改回使用 pip + 快取目錄，避免觸發耗時的 apt-get update
       - name: Install OCI CLI
         run: |
-          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash -s -- --accept-all-defaults
-          echo "Adding OCI to PATH"
-          echo "$HOME/bin" >> $GITHUB_PATH
+          pip install oci-cli --cache-dir ~/.cache/pip --quiet
 
       - name: Setup OCI CLI config
         env:
@@ -53,7 +59,7 @@ jobs:
         if: always()
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@://github.com"
           git add -A state/
           if ! git diff --cached --quiet; then
             git commit -m "更新搶建 VM 累計狀態 [skip ci]"
