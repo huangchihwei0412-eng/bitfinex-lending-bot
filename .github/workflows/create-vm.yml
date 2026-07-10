@@ -13,16 +13,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🛠️ 修正部分：設定 Python 環境（移除會導致錯誤的 cache 參數）
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      # 🛠️ 修正部分：使用純粹的 pip 安裝，不依賴專案內是否有 requirements.txt
+      # 🛠️ 專用加速安裝：直接使用官方推薦的 OCI Actions，免裝 Python、免算快取
+      # 內部使用預編譯好的環境，秒速架設好 OCI 命令列環境
       - name: Install OCI CLI
-        run: |
-          pip install oci-cli --cache-dir ~/.cache/pip --quiet
+        uses: oracle-actions/setup-oci@v1
+        with:
+          allow_node_deprecation_warning: true
 
       - name: Setup OCI CLI config
         env:
@@ -65,5 +61,5 @@ jobs:
             git pull --rebase
             git push
           else
-            echo "狀態無變化，不需提交"
+            echo "狀態無變化 nudge"
           fi
