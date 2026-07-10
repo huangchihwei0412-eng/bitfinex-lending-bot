@@ -13,12 +13,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🛠️ 修正部分：直接下載 Oracle 官方編譯好的綠色免安裝版，只需 3 秒！
+      # 🛠️ 修正部分：直接使用 Linux 原生套件安裝，免除所有 wget/curl 網址失效風險
       - name: Install OCI CLI
         run: |
-          wget -q https://githubusercontent.com
-          bash install.sh --accept-all-defaults --exec-dir $HOME/bin --install-dir $HOME/oci-cli
-          echo "$HOME/bin" >> $GITHUB_PATH
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-oci-cli
 
       - name: Setup OCI CLI config
         env:
