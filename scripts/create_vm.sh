@@ -37,31 +37,43 @@ IMAGE_ID=$(oci compute image list \
 echo "使用映像檔: $IMAGE_ID"
 
 echo "嘗試建立執行個體..."
-set +e
-RESULT=$(oci compute instance launch \
-  --compartment-id "$COMPARTMENT_ID" \
-  --availability-domain "$AD" \
-  --shape "$SHAPE" \
-  --shape-config "{\"ocpus\": $OCPUS, \"memoryInGBs\": $MEMORY_GB}" \
-  --subnet-id "$SUBNET_ID" \
-  --image-id "$IMAGE_ID" \
-  --display-name "$DISPLAY_NAME" \
-  --assign-public-ip true \
-  --ssh-authorized-keys-file <(echo "$OCI_SSH_PUBLIC_KEY") \
-  --wait-for-state RUNNING \
-  --max-wait-seconds 180 2>&1)
-STATUS=$?
-set -e
 
-echo "$RESULT"
+MAX_RETRIES=3
+for i in $(seq 1 $MAX_RETRIES); do
+  echo "--- 第 $i 次嘗試 ---"
+  set +e
+  RESULT=$(oci compute instance launch \
+    --compartment-id "$COMPARTMENT_ID" \
+    --availability-domain "$AD" \
+    --shape "$SHAPE" \
+    --shape-config "{\"ocpus\": $OCPUS, \"memoryInGBs\": $MEMORY_GB}" \
+    --subnet-id "$SUBNET_ID" \
+    --image-id "$IMAGE_ID" \
+    --display-name "$DISPLAY_NAME" \
+    --assign-public-ip true \
+    --ssh-authorized-keys-file <(echo "$OCI_SSH_PUBLIC_KEY") \
+    --wait-for-state RUNNING \
+    --max-wait-seconds 180 2>&1)
+  STATUS=$?
+  set -e
 
-if [ $STATUS -eq 0 ]; then
-  echo "🎉 VM 建立成功！"
-  exit 0
-elif echo "$RESULT" | grep -qi "OutOfCapacity\|Out of host capacity"; then
-  echo "⏳ 容量不足，等下一輪排程再試"
-  exit 0
-else
-  echo "❌ 發生非預期錯誤"
-  exit 1
-fi
+  echo "$RESULT"
+
+  if [ $STATUS -eq 0 ]; then
+    echo "🎉 VM 建立成功！"
+    exit 0
+  elif echo "$RESULT" | grep -qi "OutOfCapacity\|Out of host capacity"; then
+    echo "⏳ 容量不足，等下一輪排程再試"
+    exit 0
+  elif echo "$RESULT" | grep -qi "timed out\|timeout\|connection"; then
+    echo "⚠️ 網路連線逾時，10 秒後重試 ($i/$MAX_RETRIES)"
+    sleep 10
+    continue
+  else
+    echo "❌ 發生非預期錯誤"
+    exit 1
+  fi
+done
+
+echo "⏳ 重試 $MAX_RETRIES 次仍逾時，等下一輪排程再試"
+exit 0
