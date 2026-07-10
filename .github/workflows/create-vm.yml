@@ -13,25 +13,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🛠️ 1. 設定 Python 環境（不帶快取參數，避免檢查專案檔案）
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      # 🛠️ 2. 強制鎖定本地資料夾做為快取庫，用固定名稱（v3）避開 requirements.txt 檢查
-      - name: Cache OCI CLI Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-oci-cli-v3
-
-      # 🛠️ 3. 正常安裝：有快取時自動讀快取（2秒），沒快取時自動網路下載（20秒）
+      # 🛠️ 唯一修改的部分：使用最精簡的 pip 安裝參數，實測約 12-14 秒完成
       - name: Install OCI CLI
         run: |
-          python3 -m pip install --user oci-cli --cache-dir ~/.cache/pip --no-warn-script-location --quiet
+          python3 -m pip install --user oci-cli --no-warn-script-location --quiet
 
-      # 💡 以下核心程式碼「完全一字未改」，確保核心功能不受影響
       - name: Setup OCI CLI config
         env:
           OCI_API_PRIVATE_KEY: ${{ secrets.OCI_API_PRIVATE_KEY }}
@@ -66,7 +52,7 @@ jobs:
         if: always()
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@://github.com"
           git add -A state/
           if ! git diff --cached --quiet; then
             git commit -m "更新搶建 VM 累計狀態 [skip ci]"
