@@ -5,7 +5,13 @@ on:
 
 permissions:
   contents: write
+  # schedule:
+  #   - cron: '*/5 * * * *'
 
+concurrency:
+  group: oracle-vm-create
+  cancel-in-progress: false   # 避免同時有兩個 run 打 API；用 queue 而非取消
+  
 jobs:
   create-vm:
     runs-on: ubuntu-latest
